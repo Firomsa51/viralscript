@@ -1,0 +1,331 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: scripts
+    description: Script generation and management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /scripts/generate:
+    post:
+      operationId: generateScript
+      tags: [scripts]
+      summary: Generate a viral social media script
+      description: Uses Groq AI to generate a viral script for a given platform and topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateScriptBody"
+      responses:
+        "200":
+          description: Generated script
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedScript"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scripts:
+    get:
+      operationId: listScripts
+      tags: [scripts]
+      summary: List saved scripts
+      description: Returns all saved scripts
+      parameters:
+        - name: platform
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of scripts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Script"
+
+  /scripts/{id}:
+    get:
+      operationId: getScript
+      tags: [scripts]
+      summary: Get a saved script by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Script details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Script"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteScript
+      tags: [scripts]
+      summary: Delete a saved script
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted successfully
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scripts/{id}/save:
+    post:
+      operationId: saveScript
+      tags: [scripts]
+      summary: Save a generated script
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Script saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Script"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scripts/stats:
+    get:
+      operationId: getScriptStats
+      tags: [scripts]
+      summary: Get script generation statistics
+      description: Returns aggregate stats about scripts generated
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScriptStats"
+
+  /scripts/recent:
+    get:
+      operationId: getRecentScripts
+      tags: [scripts]
+      summary: Get recently generated scripts
+      description: Returns the most recent scripts across all platforms
+      responses:
+        "200":
+          description: Recent scripts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Script"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    GenerateScriptBody:
+      type: object
+      properties:
+        topic:
+          type: string
+          description: The topic or subject for the script
+        platform:
+          type: string
+          description: Target social media platform (tiktok, instagram, youtube, twitter, linkedin)
+          enum: [tiktok, instagram, youtube, twitter, linkedin]
+        tone:
+          type: string
+          description: The tone of the script
+          enum: [funny, serious, inspirational, educational, controversial, storytelling]
+        duration:
+          type: string
+          description: Approximate duration/length
+          enum: [short, medium, long]
+      required:
+        - topic
+        - platform
+        - tone
+        - duration
+
+    GeneratedScript:
+      type: object
+      properties:
+        id:
+          type: integer
+        topic:
+          type: string
+        platform:
+          type: string
+        tone:
+          type: string
+        duration:
+          type: string
+        script:
+          type: string
+        hook:
+          type: string
+          description: The opening hook line
+        hashtags:
+          type: array
+          items:
+            type: string
+        saved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - topic
+        - platform
+        - tone
+        - duration
+        - script
+        - hook
+        - hashtags
+        - saved
+        - createdAt
+
+    Script:
+      type: object
+      properties:
+        id:
+          type: integer
+        topic:
+          type: string
+        platform:
+          type: string
+        tone:
+          type: string
+        duration:
+          type: string
+        script:
+          type: string
+        hook:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        saved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - topic
+        - platform
+        - tone
+        - duration
+        - script
+        - hook
+        - hashtags
+        - saved
+        - createdAt
+
+    ScriptStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        saved:
+          type: integer
+        byPlatform:
+          type: object
+          additionalProperties:
+            type: integer
+        byTone:
+          type: object
+          additionalProperties:
+            type: integer
+        topTopics:
+          type: array
+          items:
+            type: string
+      required:
+        - total
+        - saved
+        - byPlatform
+        - byTone
+        - topTopics
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
