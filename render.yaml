@@ -1,6 +1,7 @@
 databases:
   - name: viralscript-db
     databaseName: viralscript
+    user: viralscript
     plan: free
 
 services:
@@ -9,20 +10,12 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: >-
-      npm install -g pnpm &&
-      pnpm install &&
-      pnpm --filter @workspace/api-spec run codegen &&
-      printf 'export * from "./generated/api";\n' > lib/api-zod/src/index.ts &&
-      BASE_PATH=/ pnpm --filter @workspace/script-generator run build &&
-      pnpm --filter @workspace/api-server run build
+    buildCommand: "npm install -g pnpm && pnpm install && pnpm --filter @workspace/api-spec run codegen && node scripts/fix-codegen.mjs && BASE_PATH=/ pnpm --filter @workspace/script-generator run build && pnpm --filter @workspace/api-server run build"
     startCommand: node artifacts/api-server/dist/index.mjs
     healthCheckPath: /api/healthz
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: BASE_PATH
         value: /
       - key: GROQ_API_KEY
