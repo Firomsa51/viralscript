@@ -9,9 +9,8 @@ services:
     name: viralscript
     runtime: node
     plan: free
-    # Pnpm config esbuild akka eeyyamuuf, artifacts ammoo akka build hin hordofneef
-    buildCommand: "corepack enable && pnpm config set only-allow-trusted-dependencies false && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-spec run codegen && node scripts/fix-codegen.mjs && BASE_PATH=/ pnpm --filter @workspace/script-generator run build && pnpm --filter @workspace/api-server run build"
-    # Workspace keessaa kallaattiidhaan api-server akka banuuf
+    # Pnpm install irratti --no-frozen-lockfile fi script eeyyamuun rakkoo kana ni fura
+    buildCommand: "corepack enable && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-spec run codegen && node scripts/fix-codegen.mjs && BASE_PATH=/ pnpm --filter @workspace/script-generator run build && pnpm --filter @workspace/api-server run build"
     startCommand: "pnpm --filter @workspace/api-server run start"
     healthCheckPath: /api/healthz
     envVars:
