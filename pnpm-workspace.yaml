@@ -16,7 +16,7 @@
 # passed (e.g. an urgent security bugfix), you can add it to the
 # `minimumReleaseAgeExclude` allowlist below. Only consider doing this for
 # packages released by trusted organizations with an impeccable security
-# posture (e.g. Replit packsges, react from Meta, typescript from Microsoft). Even then,
+# posture (e.g. Replit packages, react from Meta, typescript from Microsoft). Even then,
 # remove the exclusion once the 1-day window has passed.
 #
 # Example:
@@ -68,11 +68,15 @@ catalog:
 
 autoInstallPeers: false
 
+# ✅ FIXED: Added missing build scripts that were blocking deployment
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild
   - msw
   - unrs-resolver
+  - '@parcel/watcher'
+  - sharp
+  - bcrypt
 
 overrides:
   # replit uses linux-x64 only, we can exclude all other platforms
