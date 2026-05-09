@@ -5,6 +5,7 @@ packages:
 
 catalog:
   '@replit/vite-plugin-cartographer': ^0.2.2
+  '@replit/vite-plugin-dev-banner': ^0.1.1
   '@replit/vite-plugin-runtime-error-modal': ^0.2.2
   '@tailwindcss/vite': ^4.0.7
   '@types/node': ^22.14.0
