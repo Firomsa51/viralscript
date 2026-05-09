@@ -9,22 +9,27 @@ services:
     name: viralscript
     runtime: node
     plan: free
-    rootDir: .
-    buildCommand: "npm install -g pnpm && pnpm install --prefer-frozen-lockfile && pnpm --filter @workspace/api-spec run codegen && node scripts/fix-codegen.mjs && BASE_PATH=/ pnpm --filter @workspace/script-generator run build && pnpm --filter @workspace/api-server run build"
-    startCommand: pnpm --filter @workspace/api-server run start
+    buildCommand: |
+      corepack enable
+      pnpm install --no-frozen-lockfile --no-ignore-scripts
+      pnpm --filter @workspace/api-spec run codegen
+      node scripts/fix-codegen.mjs
+      pnpm --filter @workspace/script-generator run build
+      mkdir -p artifacts/api-server/artifacts
+      ln -sf $(pwd)/artifacts/script-generator artifacts/api-server/artifacts/script-generator
+      BASE_PATH=/ pnpm --filter @workspace/api-server run build
+    startCommand: "pnpm --filter @workspace/api-server run start"
     healthCheckPath: /api/healthz
     envVars:
       - key: NODE_VERSION
         value: 22.14.0
       - key: NODE_ENV
         value: production
-      - key: BASE_PATH
-        value: /
-      - key: GROQ_API_KEY
-        sync: false
-      - key: SESSION_SECRET
-        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: viralscript-db
           property: connectionString
+      - key: GROQ_API_KEY
+        value: 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
+      - key: SESSION_SECRET
+        generateValue: true
