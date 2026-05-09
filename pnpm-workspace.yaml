@@ -4,9 +4,9 @@ packages:
   - 'scripts'
 
 catalog:
-  '@replit/vite-plugin-cartographer': ^0.2.2
-  '@replit/vite-plugin-dev-banner': ^0.1.1
-  '@replit/vite-plugin-runtime-error-modal': ^0.2.2
+  '@replit/vite-plugin-cartographer': ^0.0.6
+  '@replit/vite-plugin-dev-banner': ^0.0.3
+  '@replit/vite-plugin-runtime-error-modal': ^0.0.6
   '@tailwindcss/vite': ^4.0.7
   '@tanstack/react-query': ^5.0.0
   '@types/node': ^22.14.0
@@ -22,6 +22,6 @@ catalog:
   react-dom: ^18.3.1
   tailwind-merge: ^2.6.0
   tailwindcss: ^4.0.7
-  tsx: ^4.19.2           # ← ADD THIS
+  tsx: ^4.19.2
   vite: ^5.4.11
   zod: ^3.24.2
