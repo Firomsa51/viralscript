@@ -4,6 +4,7 @@ import pinoHttp from "pino-http";
 import { join } from "path";
 import { existsSync } from "fs";
 import router from "./routes";
+import debugRouter from "./routes/debug";  // <-- ADDED LINE 1
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+app.use("/api", debugRouter);  // <-- ADDED LINE 2
 
 // In production, serve the built React frontend and handle SPA routing
 if (process.env.NODE_ENV === "production") {
