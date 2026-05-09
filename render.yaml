@@ -9,7 +9,15 @@ services:
     name: viralscript
     runtime: node
     plan: free
-    buildCommand: "corepack enable && pnpm install --no-frozen-lockfile --no-ignore-scripts && pnpm --filter @workspace/api-spec run codegen && node scripts/fix-codegen.mjs && pnpm --filter @workspace/script-generator run build && mkdir -p artifacts/api-server/artifacts/script-generator && cp -r artifacts/script-generator/dist artifacts/api-server/artifacts/script-generator/ && BASE_PATH=/ pnpm --filter @workspace/api-server run build"
+    buildCommand: |
+      corepack enable
+      pnpm install --no-frozen-lockfile --no-ignore-scripts
+      pnpm --filter @workspace/api-spec run codegen
+      node scripts/fix-codegen.mjs
+      pnpm --filter @workspace/script-generator run build
+      mkdir -p artifacts/api-server/artifacts/script-generator
+      cp -r artifacts/script-generator/dist artifacts/api-server/artifacts/script-generator/
+      BASE_PATH=/ pnpm --filter @workspace/api-server run build
     startCommand: "pnpm --filter @workspace/api-server run start"
     healthCheckPath: /api/healthz
     envVars:
