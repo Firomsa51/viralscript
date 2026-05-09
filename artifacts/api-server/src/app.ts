@@ -3,8 +3,14 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import { join } from "path";
 import { existsSync } from "fs";
+import { clerkMiddleware } from "@clerk/express";
+import { publishableKeyFromHost } from "@clerk/shared/keys";
+import {
+  CLERK_PROXY_PATH,
+  clerkProxyMiddleware,
+  getClerkProxyHost,
+} from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
-import debugRouter from "./routes/debug";  // <-- ADDED LINE 1
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -14,26 +20,32 @@ app.use(
     logger,
     serializers: {
       req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
+        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
       },
       res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }),
 );
-app.use(cors());
+
+// Clerk proxy must be mounted before body parsers (streams raw bytes)
+app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+
+app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  clerkMiddleware((req) => ({
+    publishableKey: publishableKeyFromHost(
+      getClerkProxyHost(req) ?? "",
+      process.env.CLERK_PUBLISHABLE_KEY,
+    ),
+  })),
+);
+
 app.use("/api", router);
-app.use("/api", debugRouter);  // <-- ADDED LINE 2
 
 // In production, serve the built React frontend and handle SPA routing
 if (process.env.NODE_ENV === "production") {
@@ -45,7 +57,7 @@ if (process.env.NODE_ENV === "production") {
       res.sendFile(join(staticPath, "index.html"));
     });
   } else {
-    logger.warn({ staticPath }, "Static frontend path not found — skipping static file serving");
+    logger.warn({ staticPath }, "Static frontend path not found");
   }
 }
 

@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 0.2.0
+  description: ViralScript API specification
 servers:
   - url: /api
     description: Base API path
@@ -18,7 +18,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -32,7 +31,6 @@ paths:
       operationId: generateScript
       tags: [scripts]
       summary: Generate a viral social media script
-      description: Uses Groq AI to generate a viral script for a given platform and topic
       requestBody:
         required: true
         content:
@@ -52,6 +50,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -63,8 +67,7 @@ paths:
     get:
       operationId: listScripts
       tags: [scripts]
-      summary: List saved scripts
-      description: Returns all saved scripts
+      summary: List user's scripts
       parameters:
         - name: platform
           in: query
@@ -90,7 +93,6 @@ paths:
     get:
       operationId: getScript
       tags: [scripts]
-      summary: Get a saved script by ID
       parameters:
         - name: id
           in: path
@@ -113,7 +115,6 @@ paths:
     delete:
       operationId: deleteScript
       tags: [scripts]
-      summary: Delete a saved script
       parameters:
         - name: id
           in: path
@@ -134,7 +135,6 @@ paths:
     post:
       operationId: saveScript
       tags: [scripts]
-      summary: Save a generated script
       parameters:
         - name: id
           in: path
@@ -160,7 +160,6 @@ paths:
       operationId: getScriptStats
       tags: [scripts]
       summary: Get script generation statistics
-      description: Returns aggregate stats about scripts generated
       responses:
         "200":
           description: Stats
@@ -174,7 +173,6 @@ paths:
       operationId: getRecentScripts
       tags: [scripts]
       summary: Get recently generated scripts
-      description: Returns the most recent scripts across all platforms
       responses:
         "200":
           description: Recent scripts
@@ -192,8 +190,7 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     GenerateScriptBody:
       type: object
@@ -203,27 +200,29 @@ components:
           description: The topic or subject for the script
         platform:
           type: string
-          description: Target social media platform (tiktok, instagram, youtube, twitter, linkedin)
-          enum: [tiktok, instagram, youtube, twitter, linkedin]
+          enum: [tiktok, instagram, youtube, youtube-long, twitter, linkedin]
         tone:
           type: string
-          description: The tone of the script
-          enum: [funny, serious, inspirational, educational, controversial, storytelling]
+          enum: [funny, hype, serious, inspirational, educational, storytelling, controversial]
         duration:
           type: string
-          description: Approximate duration/length
           enum: [short, medium, long]
-      required:
-        - topic
-        - platform
-        - tone
-        - duration
+        audience:
+          type: string
+          description: Target audience description (e.g. "beginner entrepreneurs", "fitness enthusiasts")
+        hookStyle:
+          type: string
+          enum: [question, shocking-stat, bold-claim, story, challenge, how-to]
+          description: Style of the opening hook
+      required: [topic, platform, tone, duration, audience, hookStyle]
 
     GeneratedScript:
       type: object
       properties:
         id:
           type: integer
+        userId:
+          type: string
         topic:
           type: string
         platform:
@@ -232,11 +231,14 @@ components:
           type: string
         duration:
           type: string
+        audience:
+          type: string
+        hookStyle:
+          type: string
         script:
           type: string
         hook:
           type: string
-          description: The opening hook line
         hashtags:
           type: array
           items:
@@ -246,23 +248,15 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - topic
-        - platform
-        - tone
-        - duration
-        - script
-        - hook
-        - hashtags
-        - saved
-        - createdAt
+      required: [id, userId, topic, platform, tone, duration, audience, hookStyle, script, hook, hashtags, saved, createdAt]
 
     Script:
       type: object
       properties:
         id:
           type: integer
+        userId:
+          type: string
         topic:
           type: string
         platform:
@@ -270,6 +264,10 @@ components:
         tone:
           type: string
         duration:
+          type: string
+        audience:
+          type: string
+        hookStyle:
           type: string
         script:
           type: string
@@ -284,17 +282,7 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - topic
-        - platform
-        - tone
-        - duration
-        - script
-        - hook
-        - hashtags
-        - saved
-        - createdAt
+      required: [id, userId, topic, platform, tone, duration, audience, hookStyle, script, hook, hashtags, saved, createdAt]
 
     ScriptStats:
       type: object
@@ -315,17 +303,13 @@ components:
           type: array
           items:
             type: string
-      required:
-        - total
-        - saved
-        - byPlatform
-        - byTone
-        - topTopics
+      required: [total, saved, byPlatform, byTone, topTopics]
 
     ErrorResponse:
       type: object
       properties:
         error:
           type: string
-      required:
-        - error
+        detail:
+          type: string
+      required: [error]

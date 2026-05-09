@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none">
+  <defs>
+    <linearGradient id="zap" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0099cc"/>
+    </linearGradient>
+  </defs>
+  <!-- Zap icon -->
+  <polygon points="18,4 10,22 17,22 12,36 26,16 19,16 24,4" fill="url(#zap)"/>
+  <!-- Wordmark -->
+  <text x="32" y="26" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#f1f5f9" letter-spacing="-0.5">ViralScript</text>
+</svg>

@@ -4,10 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGenerateScript, useSaveScript, getGetScriptStatsQueryKey, getListScriptsQueryKey, getGetRecentScriptsQueryKey } from "@workspace/api-client-react";
-import type { GeneratedScript } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { GeneratedScript, GenerateScriptBody } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Save, Sparkles, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Copy, Save, Sparkles, RefreshCw, CheckCircle2, Zap, AlertCircle } from "lucide-react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   topic: z.string().min(3, "Topic must be at least 3 characters"),
-  platform: z.enum(["tiktok", "instagram", "youtube", "twitter", "linkedin"]),
-  tone: z.enum(["funny", "serious", "inspirational", "educational", "controversial", "storytelling"]),
+  platform: z.enum(["tiktok", "instagram", "youtube", "youtube-long", "twitter", "linkedin"]),
+  tone: z.enum(["funny", "hype", "serious", "inspirational", "educational", "storytelling", "controversial"]),
   duration: z.enum(["short", "medium", "long"]),
+  audience: z.string().min(2, "Describe your target audience"),
+  hookStyle: z.enum(["question", "shocking-stat", "bold-claim", "story", "challenge", "how-to"]),
 });
 
 export function HomePage() {
@@ -28,9 +31,10 @@ export function HomePage() {
   const queryClient = useQueryClient();
   const generateScript = useGenerateScript();
   const saveScript = useSaveScript();
-  
+
   const [generatedResult, setGeneratedResult] = useState<GeneratedScript | null>(null);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,28 +43,27 @@ export function HomePage() {
       platform: "tiktok",
       tone: "educational",
       duration: "short",
+      audience: "general audience",
+      hookStyle: "question",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setErrorMessage(null);
     generateScript.mutate(
-      { data: values },
+      { data: values as GenerateScriptBody },
       {
         onSuccess: (data) => {
           setGeneratedResult(data);
           queryClient.invalidateQueries({ queryKey: getGetScriptStatsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetRecentScriptsQueryKey() });
-          toast({
-            title: "Script generated!",
-            description: "Your viral script is ready.",
-          });
+          toast({ title: "Script generated!", description: "Your viral script is ready." });
         },
-        onError: () => {
-          toast({
-            variant: "destructive",
-            title: "Generation failed",
-            description: "Something went wrong while generating the script.",
-          });
+        onError: (err: unknown) => {
+          const e = err as { response?: { data?: { error?: string; detail?: string } } };
+          const msg = e.response?.data?.detail ?? e.response?.data?.error ?? "Something went wrong while generating the script.";
+          setErrorMessage(msg);
+          toast({ variant: "destructive", title: "Generation failed", description: msg });
         },
       }
     );
@@ -75,10 +78,7 @@ export function HomePage() {
           setGeneratedResult({ ...generatedResult, saved: true });
           queryClient.invalidateQueries({ queryKey: getListScriptsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetScriptStatsQueryKey() });
-          toast({
-            title: "Saved to Library",
-            description: "You can access this script later.",
-          });
+          toast({ title: "Saved to Library", description: "You can access this script later." });
         },
       }
     );
@@ -88,10 +88,7 @@ export function HomePage() {
     if (!generatedResult) return;
     await navigator.clipboard.writeText(generatedResult.script);
     setCopied(true);
-    toast({
-      title: "Copied to clipboard",
-      description: "Script ready to paste.",
-    });
+    toast({ title: "Copied to clipboard", description: "Script ready to paste." });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -102,7 +99,7 @@ export function HomePage() {
           Create <span className="text-primary">Viral</span> Content
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
-          Dial in your topic, hit generate, and get a highly optimized script tailored for maximum engagement.
+          Dial in your platform, audience, and hook style — then get a script optimised for maximum engagement.
         </p>
       </div>
 
@@ -133,6 +130,20 @@ export function HomePage() {
                     )}
                   />
 
+                  <FormField
+                    control={form.control}
+                    name="audience"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Target Audience</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., beginner entrepreneurs, fitness enthusiasts..." className="bg-background/50 border-input" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -148,8 +159,9 @@ export function HomePage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="tiktok">TikTok</SelectItem>
-                              <SelectItem value="instagram">Instagram</SelectItem>
+                              <SelectItem value="instagram">Instagram Reels</SelectItem>
                               <SelectItem value="youtube">YouTube Shorts</SelectItem>
+                              <SelectItem value="youtube-long">YouTube Long-form</SelectItem>
                               <SelectItem value="twitter">Twitter / X</SelectItem>
                               <SelectItem value="linkedin">LinkedIn</SelectItem>
                             </SelectContent>
@@ -174,10 +186,11 @@ export function HomePage() {
                             <SelectContent>
                               <SelectItem value="educational">Educational</SelectItem>
                               <SelectItem value="funny">Funny</SelectItem>
+                              <SelectItem value="hype">Hype / Energetic</SelectItem>
                               <SelectItem value="inspirational">Inspirational</SelectItem>
                               <SelectItem value="serious">Serious</SelectItem>
-                              <SelectItem value="controversial">Controversial</SelectItem>
                               <SelectItem value="storytelling">Storytelling</SelectItem>
+                              <SelectItem value="controversial">Controversial</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -186,31 +199,66 @@ export function HomePage() {
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="duration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Duration</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-background/50 border-input">
-                              <SelectValue placeholder="Duration" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="short">Short (&lt;30s)</SelectItem>
-                            <SelectItem value="medium">Medium (30-60s)</SelectItem>
-                            <SelectItem value="long">Long (1m+)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="hookStyle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Hook Style</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="bg-background/50 border-input">
+                                <SelectValue placeholder="Hook" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="question">Question</SelectItem>
+                              <SelectItem value="shocking-stat">Shocking Stat</SelectItem>
+                              <SelectItem value="bold-claim">Bold Claim</SelectItem>
+                              <SelectItem value="story">Story Drop</SelectItem>
+                              <SelectItem value="challenge">Challenge</SelectItem>
+                              <SelectItem value="how-to">How-To Promise</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <Button 
-                    type="submit" 
+                    <FormField
+                      control={form.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duration</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="bg-background/50 border-input">
+                                <SelectValue placeholder="Duration" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="short">Short</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="long">Long</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {errorMessage && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <Button
+                    type="submit"
                     className="w-full mt-4 text-primary-foreground font-bold hover-elevate shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:shadow-[0_0_30px_rgba(0,255,255,0.5)] transition-all"
                     disabled={generateScript.isPending}
                     size="lg"
@@ -263,14 +311,14 @@ export function HomePage() {
                   </div>
                   <CardContent className="p-6 flex-1 flex flex-col">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {generatedResult.hashtags.map((tag) => (
+                      {generatedResult.hashtags.map((tag: string) => (
                         <span key={tag} className="px-2 py-1 bg-secondary/20 text-secondary text-xs rounded font-mono">
                           {tag}
                         </span>
                       ))}
                     </div>
-                    <Textarea 
-                      readOnly 
+                    <Textarea
+                      readOnly
                       value={generatedResult.script}
                       className="flex-1 min-h-[300px] resize-none font-mono text-sm leading-relaxed border-none bg-transparent focus-visible:ring-0 p-0 text-muted-foreground"
                     />
@@ -280,9 +328,9 @@ export function HomePage() {
                       {copied ? <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> : <Copy className="w-4 h-4 mr-2" />}
                       {copied ? "Copied" : "Copy text"}
                     </Button>
-                    <Button 
-                      variant="default" 
-                      onClick={handleSave} 
+                    <Button
+                      variant="default"
+                      onClick={handleSave}
                       disabled={generatedResult.saved || saveScript.isPending}
                       className="hover-elevate"
                     >
@@ -321,6 +369,3 @@ export function HomePage() {
     </div>
   );
 }
-
-// Just importing Zap here so it's available without error since we used it above
-import { Zap } from "lucide-react";
