@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db, scriptsTable } from "@workspace/db";
 import { generateViralScript } from "../lib/groq";
 import {
@@ -27,34 +27,64 @@ router.post("/scripts/generate", async (req, res): Promise<void> => {
 
   const { topic, platform, tone, duration } = parsed.data;
 
+  // --- Groq generation ---
   let result;
   try {
     result = await generateViralScript({ topic, platform, tone, duration });
-  } catch (err) {
-    req.log.error({ err }, "Failed to generate script with Groq");
-    res.status(500).json({ error: "Failed to generate script" });
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; error?: { message?: string } };
+    const detail = e.error?.message ?? e.message ?? String(err);
+    req.log.error({ err, status: e.status }, "Groq API call failed");
+    res.status(502).json({
+      error: "Groq API call failed",
+      detail,
+      groq_status: e.status,
+    });
     return;
   }
 
-  const [script] = await db
-    .insert(scriptsTable)
-    .values({
-      topic,
-      platform,
-      tone,
-      duration,
-      script: result.script,
-      hook: result.hook,
-      hashtags: result.hashtags,
-      saved: false,
-    })
-    .returning();
+  // --- Persist to DB ---
+  let script;
+  try {
+    const [row] = await db
+      .insert(scriptsTable)
+      .values({
+        topic,
+        platform,
+        tone,
+        duration,
+        script: result.script,
+        hook: result.hook,
+        hashtags: result.hashtags,
+        saved: false,
+      })
+      .returning();
+    script = row;
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB insert failed after successful Groq generation");
+    res.status(500).json({
+      error: "Script generated but could not be saved to the database",
+      detail: e.message,
+      // Still return the generated content so the user isn't left empty-handed
+      generated: result,
+    });
+    return;
+  }
 
   res.json(GenerateScriptResponse.parse(script));
 });
 
 router.get("/scripts/stats", async (req, res): Promise<void> => {
-  const allScripts = await db.select().from(scriptsTable);
+  let allScripts;
+  try {
+    allScripts = await db.select().from(scriptsTable);
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB query failed for stats");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
+  }
 
   const total = allScripts.length;
   const saved = allScripts.filter((s) => s.saved).length;
@@ -78,11 +108,19 @@ router.get("/scripts/stats", async (req, res): Promise<void> => {
 });
 
 router.get("/scripts/recent", async (req, res): Promise<void> => {
-  const scripts = await db
-    .select()
-    .from(scriptsTable)
-    .orderBy(desc(scriptsTable.createdAt))
-    .limit(10);
+  let scripts;
+  try {
+    scripts = await db
+      .select()
+      .from(scriptsTable)
+      .orderBy(desc(scriptsTable.createdAt))
+      .limit(10);
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB query failed for recent scripts");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
+  }
 
   res.json(GetRecentScriptsResponse.parse(scripts));
 });
@@ -94,16 +132,22 @@ router.get("/scripts", async (req, res): Promise<void> => {
     return;
   }
 
-  let query = db.select().from(scriptsTable).$dynamic();
-
-  if (params.data.platform) {
-    query = query.where(eq(scriptsTable.platform, params.data.platform));
+  let scripts;
+  try {
+    let query = db.select().from(scriptsTable).$dynamic();
+    if (params.data.platform) {
+      query = query.where(eq(scriptsTable.platform, params.data.platform));
+    }
+    const limit = params.data.limit ?? 50;
+    query = query.orderBy(desc(scriptsTable.createdAt)).limit(limit);
+    scripts = await query;
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB query failed for scripts list");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
   }
 
-  const limit = params.data.limit ?? 50;
-  query = query.orderBy(desc(scriptsTable.createdAt)).limit(limit);
-
-  const scripts = await query;
   res.json(ListScriptsResponse.parse(scripts));
 });
 
@@ -114,10 +158,19 @@ router.get("/scripts/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [script] = await db
-    .select()
-    .from(scriptsTable)
-    .where(eq(scriptsTable.id, params.data.id));
+  let script;
+  try {
+    const [row] = await db
+      .select()
+      .from(scriptsTable)
+      .where(eq(scriptsTable.id, params.data.id));
+    script = row;
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB query failed for script lookup");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
+  }
 
   if (!script) {
     res.status(404).json({ error: "Script not found" });
@@ -134,10 +187,19 @@ router.delete("/scripts/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [script] = await db
-    .delete(scriptsTable)
-    .where(eq(scriptsTable.id, params.data.id))
-    .returning();
+  let script;
+  try {
+    const [row] = await db
+      .delete(scriptsTable)
+      .where(eq(scriptsTable.id, params.data.id))
+      .returning();
+    script = row;
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB delete failed");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
+  }
 
   if (!script) {
     res.status(404).json({ error: "Script not found" });
@@ -154,11 +216,20 @@ router.post("/scripts/:id/save", async (req, res): Promise<void> => {
     return;
   }
 
-  const [script] = await db
-    .update(scriptsTable)
-    .set({ saved: true })
-    .where(eq(scriptsTable.id, params.data.id))
-    .returning();
+  let script;
+  try {
+    const [row] = await db
+      .update(scriptsTable)
+      .set({ saved: true })
+      .where(eq(scriptsTable.id, params.data.id))
+      .returning();
+    script = row;
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    req.log.error({ err }, "DB update failed");
+    res.status(500).json({ error: "Database unavailable", detail: e.message });
+    return;
+  }
 
   if (!script) {
     res.status(404).json({ error: "Script not found" });
