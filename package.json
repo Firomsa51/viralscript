@@ -13,9 +13,6 @@
     "prettier": "^3.8.1"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "@clerk/shared"
-    ]
+    "onlyBuiltDependencies": ["esbuild", "@clerk/shared"]
   }
 }
