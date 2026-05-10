@@ -11,7 +11,9 @@ services:
     plan: free
     buildCommand: |
       corepack enable
-      pnpm install --no-frozen-lockfile --no-ignore-scripts
+      pnpm config set only-built-dependencies esbuild,@clerk/shared
+      pnpm install --no-frozen-lockfile --only-built-dependencies=esbuild,@clerk/shared
+      pnpm add -w @tailwindcss/typography wouter
       pnpm --filter @workspace/api-spec run codegen
       node scripts/fix-codegen.mjs
       pnpm --filter @workspace/script-generator run build
@@ -22,6 +24,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22.14.0
+      - key: PNPM_CONFIG_ONLY_BUILT_DEPENDENCIES
+        value: esbuild,@clerk/shared
       - key: GROQ_API_KEY
         value: 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
       - key: DATABASE_URL
