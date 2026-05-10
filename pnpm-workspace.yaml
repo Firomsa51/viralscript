@@ -10,5 +10,7 @@ catalog:
   "@tanstack/react-query": ^5.0.0
   react: ^18.2.0
 
+# 🚨 This is the specific fix for the error.
+# In pnpm 11, allowBuilds must be a map (a list), not a true/false value.
 allowBuilds:
-  - esbuild
+  esbuild: true
