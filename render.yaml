@@ -3,7 +3,6 @@ databases:
     databaseName: viralscript
     user: viralscript
     plan: free
-
 services:
   - type: web
     name: viralscript
@@ -15,8 +14,8 @@ services:
       pnpm --filter @workspace/api-spec run codegen
       node scripts/fix-codegen.mjs
       pnpm --filter @workspace/script-generator run build
-      mkdir -p artifacts/api-server/artifacts
-      ln -sf $(pwd)/artifacts/script-generator artifacts/api-server/artifacts/script-generator
+      mkdir -p artifacts/api-server/artifacts/script-generator
+      cp -r artifacts/script-generator/dist artifacts/api-server/artifacts/script-generator/dist
       BASE_PATH=/ pnpm --filter @workspace/api-server run build
     startCommand: "pnpm --filter @workspace/api-server run start"
     healthCheckPath: /api/healthz
