@@ -5,23 +5,5 @@ packages:
 
 catalog:
   '@replit/vite-plugin-cartographer': ^0.0.6
-  '@replit/vite-plugin-dev-banner': ^0.0.3
+  '@replit/vite-plugin-dev-banner': ^0.1.2
   '@replit/vite-plugin-runtime-error-modal': ^0.0.6
-  '@tailwindcss/vite': ^4.0.7
-  '@tanstack/react-query': ^5.0.0
-  '@types/node': ^22.14.0
-  '@types/react': ^18.3.12
-  '@types/react-dom': ^18.3.1
-  '@vitejs/plugin-react': ^4.3.4
-  class-variance-authority: ^0.7.1
-  clsx: ^2.1.1
-  drizzle-orm: ^0.38.4
-  framer-motion: ^11.18.1
-  lucide-react: ^0.469.0
-  react: ^18.3.1
-  react-dom: ^18.3.1
-  tailwind-merge: ^2.6.0
-  tailwindcss: ^4.0.7
-  tsx: ^4.19.2
-  vite: ^5.4.11
-  zod: ^3.24.2
