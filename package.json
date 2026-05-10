@@ -15,7 +15,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "@clerk/shared"
+      "@clerk/shared",
+      "@clerk/react",
+      "@clerk/themes"
     ]
   }
 }
