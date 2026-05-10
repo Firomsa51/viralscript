@@ -44,7 +44,7 @@ app.use("/api", router);
 
 // In production, serve the built React frontend and handle SPA routing
 if (process.env.NODE_ENV === "production") {
-  const staticPath = join(process.cwd(), "artifacts/script-generator/dist/public");
+  const staticPath = join(process.cwd(), "artifacts/api-server/artifacts/script-generator/dist/public");
   if (existsSync(staticPath)) {
     logger.info({ staticPath }, "Serving static frontend files");
     app.use(express.static(staticPath));
