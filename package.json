@@ -1,23 +1,16 @@
 {
   "name": "workspace",
   "version": "0.0.0",
-  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "prettier": "^3.3.3"
-  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "@clerk/shared",
-      "@clerk/react",
-      "@clerk/themes"
+      "@clerk/shared"
     ]
   }
 }
