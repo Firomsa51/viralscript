@@ -10,4 +10,5 @@ catalog:
   "@tanstack/react-query": ^5.0.0
   react: ^18.2.0
 
-allowBuilds: true
+allowBuilds:
+  - esbuild
