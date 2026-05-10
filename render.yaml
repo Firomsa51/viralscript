@@ -3,6 +3,7 @@ databases:
     databaseName: viralscript
     user: viralscript
     plan: free
+
 services:
   - type: web
     name: viralscript
@@ -13,24 +14,17 @@ services:
       pnpm install --no-frozen-lockfile --no-ignore-scripts
       pnpm --filter @workspace/api-spec run codegen
       node scripts/fix-codegen.mjs
-      pnpm add @clerk/themes -w
       pnpm --filter @workspace/script-generator run build
-      ls -la artifacts/script-generator/dist/
       mkdir -p artifacts/api-server/artifacts/script-generator/dist
       cp -r artifacts/script-generator/dist/. artifacts/api-server/artifacts/script-generator/dist/
-      BASE_PATH=/ pnpm --filter @workspace/api-server run build
+      pnpm --filter @workspace/api-server run build
     startCommand: "pnpm --filter @workspace/api-server run start"
-    healthCheckPath: /api/healthz
     envVars:
       - key: NODE_VERSION
         value: 22.14.0
-      - key: NODE_ENV
-        value: production
+      - key: GROQ_API_KEY
+        value: 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
       - key: DATABASE_URL
         fromDatabase:
           name: viralscript-db
           property: connectionString
-      - key: GROQ_API_KEY
-        value: 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
-      - key: SESSION_SECRET
-        generateValue: true
