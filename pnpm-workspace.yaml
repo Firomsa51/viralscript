@@ -4,17 +4,16 @@ packages:
   - 'scripts'
 
 overrides:
-  "@clerk/react": "^5.54.0"
-  "@clerk/shared": "^3.48.0"
-  "@clerk/themes": "^2.4.57"
+  "@clerk/react": "^5.22.0"
+  "@clerk/shared": "^2.22.1"
+  "@clerk/themes": "^2.2.1"
 
 catalog:
-  # Clerk Fix
-  "@clerk/react": "^5.54.0"
-  "@clerk/shared": "^3.48.0"
-  "@clerk/themes": "^2.4.57"
+  # Clerk Fix (Versioona ammayyaa kan logs kee irratti 'latest' jedhame)
+  "@clerk/react": "^5.22.0"
+  "@clerk/shared": "^2.22.1"
+  "@clerk/themes": "^2.2.1"
   
-  # Build Tools (Amma kan sitti dhufe)
   "tsx": "^4.19.2"
   "zod": "^3.23.3"
   "typescript": "^5.9.3"
