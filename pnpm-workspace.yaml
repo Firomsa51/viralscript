@@ -15,3 +15,5 @@ catalog:
   "@types/node": "^22.14.0"
   "@vitejs/plugin-react": "^4.3.4"
   vite: "^5.4.11"
+  # KANA ITTI DABALI:
+  "@tanstack/react-query": "^5.0.0"
