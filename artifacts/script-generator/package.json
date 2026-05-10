@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
-    "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
+    "serve": "vite preview --config vite.config.ts --host 0.0.0.0 --port $PORT",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -39,7 +43,7 @@
     "@radix-ui/react-toggle-group": "^1.1.3",
     "@radix-ui/react-tooltip": "^1.2.0",
     "@replit/vite-plugin-cartographer": "^0.0.6",
-    "@replit/vite-plugin-dev-banner": "^0.0.3",
+    "@replit/vite-plugin-dev-banner": "^0.1.2",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.6",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.0.7",
