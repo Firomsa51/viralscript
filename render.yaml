@@ -13,10 +13,11 @@ services:
       pnpm install --no-frozen-lockfile --no-ignore-scripts
       pnpm --filter @workspace/api-spec run codegen
       node scripts/fix-codegen.mjs
-      pnpm --filter @workspace/script-generator run build 2>&1 || echo "FRONTEND BUILD FAILED BUT CONTINUING"
-      ls -la artifacts/script-generator/dist/ 2>&1 || echo "NO DIST FOLDER"
-      mkdir -p artifacts/api-server/artifacts/script-generator/dist/public
-      cp -r artifacts/script-generator/dist/. artifacts/api-server/artifacts/script-generator/dist/ 2>/dev/null || true
+      pnpm add @clerk/themes -w
+      pnpm --filter @workspace/script-generator run build
+      ls -la artifacts/script-generator/dist/
+      mkdir -p artifacts/api-server/artifacts/script-generator/dist
+      cp -r artifacts/script-generator/dist/. artifacts/api-server/artifacts/script-generator/dist/
       BASE_PATH=/ pnpm --filter @workspace/api-server run build
     startCommand: "pnpm --filter @workspace/api-server run start"
     healthCheckPath: /api/healthz
