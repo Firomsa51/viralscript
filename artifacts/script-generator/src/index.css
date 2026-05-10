@@ -1,7 +1,7 @@
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@clerk/themes/shadcn.css";
+/* @import "@clerk/themes/shadcn.css"; */
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -75,21 +75,17 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Deep dark base */
   --background: 240 10% 4%;
   --foreground: 0 0% 98%;
 
-  /* Borders slightly visible */
   --border: 240 10% 12%;
   --input: 240 10% 16%;
   --ring: 180 100% 50%;
 
-  /* Cards */
   --card: 240 10% 6%;
   --card-foreground: 0 0% 98%;
   --card-border: 240 10% 12%;
 
-  /* Sidebar */
   --sidebar: 240 10% 4%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 240 10% 12%;
@@ -99,32 +95,25 @@
   --sidebar-accent-foreground: 0 0% 98%;
   --sidebar-ring: 180 100% 50%;
 
-  /* Popover */
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 12%;
 
-  /* Primary: Neon Cyan */
   --primary: 180 100% 50%;
   --primary-foreground: 240 10% 4%;
 
-  /* Secondary: Deep Electric Purple */
   --secondary: 270 100% 60%;
   --secondary-foreground: 0 0% 98%;
 
-  /* Muted */
   --muted: 240 10% 12%;
   --muted-foreground: 240 10% 65%;
 
-  /* Accent */
   --accent: 180 100% 50%;
   --accent-foreground: 240 10% 4%;
 
-  /* Destructive */
   --destructive: 350 100% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  /* Charts */
   --chart-1: 180 100% 50%;
   --chart-2: 270 100% 60%;
   --chart-3: 320 100% 60%;
