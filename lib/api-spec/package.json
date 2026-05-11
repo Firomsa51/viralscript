@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "codegen": "orval --config ./orval.config.ts",
-    "codegen:check": "orval --config ./orval.config.ts && pnpm -w run typecheck:libs"
+    "build": "pnpm run codegen"
   },
   "devDependencies": {
-    "orval": "^8.5.2"
+    "orval": "^7.5.0",
+    "axios": "^1.6.0"
   }
 }
